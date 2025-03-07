@@ -5,7 +5,7 @@ set -eu
 HOME=$(dirname "$0")
 FULL_HOME="$(pwd)"/"$HOME"
 SERVER=qiangj-mqtt-poc-namespace.westus2-1.ts.eventgrid.azure.net
-CLIENT=sample_client8
+CLIENT=sample_client10
 
 function generateCA() {
     SUBJECT=$1
@@ -51,6 +51,7 @@ function generateServerCertificate() {
 function generateClientCertificate() {
     SUBJECT=$1
     NAME=$2
+    ISSUER_NAME=$3
     #PASSWORD=$(openssl rand -base64 29 | tr -d "=+/" | cut -c1-25)
     PASSWORD="MQTTNIOClientCertPassword"
     openssl req \
@@ -65,8 +66,8 @@ function generateClientCertificate() {
         -req \
         -sha256 \
         -in "$NAME".csr \
-        -CA ca.pem \
-        -CAkey ca.key \
+        -CA "$ISSUER_NAME.pem" \
+        -CAkey "$ISSUER_NAME.key" \
         -CAcreateserial \
         -out "$NAME".pem \
         -days 1825
@@ -97,5 +98,5 @@ if test "$OUTPUT_SERVER" == 1; then
     generateServerCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Server/CN=${SERVER}" server
 fi
 if test "$OUTPUT_CLIENT" == 1; then
-    generateClientCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Client/CN=${CLIENT}" ${CLIENT}
+    generateClientCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Client/CN=${CLIENT}" ${CLIENT} server
 fi
