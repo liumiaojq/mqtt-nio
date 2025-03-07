@@ -71,7 +71,7 @@ function generateClientCertificate() {
         -out "$NAME".pem \
         -days 1825
 
-    openssl pkcs12 -export -passout pass:"$PASSWORD" -out "$NAME".p12 -in "$NAME".pem -inkey "$NAME".key
+    openssl pkcs12 -export -passout pass:"$PASSWORD" -out "$NAME".p12 -in "$NAME".pem -inkey "$NAME".key -legacy -certpbe pbeWithSHA1And40BitRC2-CBC   
     
     echo "Password: $PASSWORD"
 }
