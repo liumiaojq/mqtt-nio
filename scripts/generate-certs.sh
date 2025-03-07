@@ -51,7 +51,6 @@ function generateServerCertificate() {
 function generateClientCertificate() {
     SUBJECT=$1
     NAME=$2
-    ISSUER_NAME=$3
     #PASSWORD=$(openssl rand -base64 29 | tr -d "=+/" | cut -c1-25)
     PASSWORD="MQTTNIOClientCertPassword"
     openssl req \
@@ -66,9 +65,11 @@ function generateClientCertificate() {
         -req \
         -sha256 \
         -in "$NAME".csr \
-        -CA "$ISSUER_NAME.pem" \
-        -CAkey "$ISSUER_NAME.key" \
+        -CA intermediate_ca.crt \
+        -CAkey intermediate_ca_key \
         -CAcreateserial \
+        -extfile <(cat "$FULL_HOME"/openssl.cnf <(printf "subjectAltName=DNS:$CLIENT\n")) \
+        -extensions v3_req \
         -out "$NAME".pem \
         -days 1825
 
@@ -95,8 +96,8 @@ if test "$OUTPUT_ROOT" == 1; then
     generateCA "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=CA/CN=${SERVER}"
 fi
 if test "$OUTPUT_SERVER" == 1; then
-    generateServerCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Server/CN=${SERVER}" server
+    generateServerCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Server/CN=${SERVER}" broker
 fi
 if test "$OUTPUT_CLIENT" == 1; then
-    generateClientCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Client/CN=${CLIENT}" ${CLIENT} server
+    generateClientCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Client/CN=${CLIENT}" ${CLIENT}
 fi
