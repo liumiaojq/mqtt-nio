@@ -5,7 +5,7 @@ set -eu
 HOME=$(dirname "$0")
 FULL_HOME="$(pwd)"/"$HOME"
 SERVER=qiangj-mqtt-poc-namespace.westus2-1.ts.eventgrid.azure.net
-CLIENT=sample_client6
+CLIENT=sample_client8
 
 function generateCA() {
     SUBJECT=$1
