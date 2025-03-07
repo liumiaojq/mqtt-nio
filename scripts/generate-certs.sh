@@ -4,7 +4,8 @@ set -eu
 
 HOME=$(dirname "$0")
 FULL_HOME="$(pwd)"/"$HOME"
-SERVER=soto.codes
+SERVER=qiangj-mqtt-poc-namespace.westus2-1.ts.eventgrid.azure.net
+CLIENT=sample_client10
 
 function generateCA() {
     SUBJECT=$1
@@ -64,13 +65,15 @@ function generateClientCertificate() {
         -req \
         -sha256 \
         -in "$NAME".csr \
-        -CA ca.pem \
-        -CAkey ca.key \
+        -CA intermediate_ca.crt \
+        -CAkey intermediate_ca_key \
         -CAcreateserial \
+        -extfile <(cat "$FULL_HOME"/openssl.cnf <(printf "subjectAltName=DNS:$CLIENT\n")) \
+        -extensions v3_req \
         -out "$NAME".pem \
         -days 1825
 
-    openssl pkcs12 -export -passout pass:"$PASSWORD" -out "$NAME".p12 -in "$NAME".pem -inkey "$NAME".key
+    openssl pkcs12 -export -passout pass:"$PASSWORD" -out "$NAME".p12 -in "$NAME".pem -inkey "$NAME".key -legacy -certpbe pbeWithSHA1And40BitRC2-CBC   
     
     echo "Password: $PASSWORD"
 }
@@ -93,8 +96,8 @@ if test "$OUTPUT_ROOT" == 1; then
     generateCA "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=CA/CN=${SERVER}"
 fi
 if test "$OUTPUT_SERVER" == 1; then
-    generateServerCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Server/CN=${SERVER}" server
+    generateServerCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Server/CN=${SERVER}" broker
 fi
 if test "$OUTPUT_CLIENT" == 1; then
-    generateClientCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Client/CN=${SERVER}" client
+    generateClientCertificate "/C=UK/ST=Edinburgh/L=Edinburgh/O=MQTTNIO/OU=Client/CN=${CLIENT}" ${CLIENT}
 fi
